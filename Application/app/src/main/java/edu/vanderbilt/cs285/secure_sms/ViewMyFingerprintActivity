@@ -1,0 +1,98 @@
+package edu.vanderbilt.cs285.secure_sms;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.app.ActionBar;
+
+import org.bouncycastle.jce.provider.BrokenPBE;
+
+import java.security.PublicKey;
+
+
+public class ViewMyFingerprintActivity extends Activity {
+
+    TextView key;
+    String PublicKeyToHash;
+    String publicKeyToView1;
+    String publicKeyToView2;
+
+    String symkey;
+  
+    TextView publicKey;
+
+    StringBuilder publicKeyToGo1 = new StringBuilder();
+    StringBuilder publicKeyToGo2 = new StringBuilder();
+    
+    AsymmetricEncrpytor asy = new AsymmetricEncrpytor();
+ 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_view_my_fingerprint);
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+
+        try
+        {
+            Context context = createPackageContext("edu.vanderbilt.cs285.secure_sms",Context.CONTEXT_IGNORE_SECURITY);
+
+            if(!asy.getKeys(1024,context))asy.init(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        SharedPreferences sharedPreferences= getSharedPreferences("MyKeys",
+                Activity.MODE_PRIVATE);
+
+        publicKeyToView1 = sharedPreferences.getString("PublicExponent","");
+        publicKeyToView2 = sharedPreferences.getString("PublicModulus","");
+        
+        
+        for (int i = 0; i < publicKeyToView1.length()-1; i+=2) {
+            publicKeyToGo1.append(publicKeyToView1.charAt(i)).append(" ");
+        }
+
+        for (int i = 0; i < publicKeyToView2.length()-1; i+=2) {
+            publicKeyToGo2.append(publicKeyToView2.charAt(i)).append(" ");
+        }
+
+        
+        key = (TextView) findViewById(R.id.editText);
+        publicKey = (TextView) findViewById(R.id.textView1);
+        // TODO: setText to a hash of the users public key
+        key.setText("<User's fingerprint goes here>");
+        publicKey.setText(publicKeyToGo1.toString() + publicKeyToGo2.toString());
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.view_my_fingerprint, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+ 
+            if(item.getItemId() == android.R.id.home)
+            {
+                finish();
+                return true;
+            }
+        return super.onOptionsItemSelected(item);
+    }
+
+}
